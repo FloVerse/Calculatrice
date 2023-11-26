@@ -57,11 +57,7 @@ class Calculatrice(QWidget):
         self.history_layout = QVBoxLayout(self.history_widget)
         self.history_widget.hide()
 
-        self.history_layout.addWidget(QLabel("Historique 1"))
-        self.history_layout.addWidget(QLabel("Historique 2"))
-        self.history_layout.addWidget(QLabel("Historique 3"))
-
-        self.layout.addWidget(self.history_widget, 1, 0, 1, 5)
+        self.layout.addWidget(self.history_widget, 1, 5, 1, 5)
 
         # Bouton historique
         self.button_history = QPushButton('🕒', self)
@@ -117,8 +113,9 @@ class Calculatrice(QWidget):
         self.history_widget.setHidden(not self.history_widget.isHidden())
 
         #self.history_display.clear()
-        #for value in self.history:
-        #    history_entry = f"{value[0]} = {value[1]}"
+        for value in self.history:
+            history_entry = f"{value[0]} = {value[1]}"
+            self.history_layout.addWidget(QLabel(history_entry))
         #    self.history_display.append(history_entry)
 
     # Reinitialise la calculatrice
