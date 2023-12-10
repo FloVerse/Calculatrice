@@ -1,15 +1,16 @@
 import sys
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLineEdit, QGridLayout, QTextEdit, QLabel, \
-    QMenu
+    QMenu, QListView, QSizePolicy
 
 
 class Calculatrice(QWidget):
 
     def __init__(self, parent=None):
         QWidget.__init__(self, parent=parent)
+        self.historique_view = None
         self.label = None
         self.history_display = None
         self.button_history = None
@@ -18,6 +19,8 @@ class Calculatrice(QWidget):
         self.font = QFont("Arial", 12)
         self.display = None
         self.layout = None
+        self.model_history = QStandardItemModel()
+        self.initial_width = self.width()
         self.initUI()
 
     def initUI(self):
@@ -47,17 +50,20 @@ class Calculatrice(QWidget):
         self.display.setFont(display_font)
         self.layout.addWidget(self.display, 1, 0, 1, 4)
 
-        #self.history_display = QTextEdit(self)
-        # self.history_display.setFixedHeight(50)
-        # self.history_display.setFont(self.font)
-        # self.history_display.setReadOnly(True)
-        # self.layout.addWidget(self.history_display, 1, 4, 1, 1)
-        # Liste déroulante (initiallement cachée)
-        self.history_widget = QWidget(self)
-        self.history_layout = QVBoxLayout(self.history_widget)
-        self.history_widget.hide()
+        self.historique_view = QListView(self)
+        self.historique_view.setModel(self.model_history)
+        self.historique_view.setFixedHeight(75)
+        self.historique_view.setFixedWidth(200)
+        self.historique_view.setEditTriggers(QListView.NoEditTriggers)
+        self.historique_view.setFont(self.font)
+        self.historique_view.setHidden(True)
+        self.historique_view.setSizePolicy(QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding))
+        self.initial_width = self.width() - self.historique_view.width()
 
-        self.layout.addWidget(self.history_widget, 1, 5, 1, 5)
+
+
+        self.layout.addWidget(self.historique_view, 1, 5, 1, 5)
+
 
         # Bouton historique
         self.button_history = QPushButton('🕒', self)
@@ -110,14 +116,18 @@ class Calculatrice(QWidget):
     # Fonctions
 
     def show_history(self):
-        self.history_widget.setHidden(not self.history_widget.isHidden())
-
-        #self.history_display.clear()
+        self.historique_view.setVisible(not self.historique_view.isVisible())
+        if self.historique_view.isVisible():
+            self.resize(self.width() + self.historique_view.width(), self.height())
+        else:
+            self.resize(self.initial_width, self.height())
+        #print the history
+        self.print_history()
+    def print_history(self):
+        self.model_history.clear()
         for value in self.history:
             history_entry = f"{value[0]} = {value[1]}"
-            self.history_layout.addWidget(QLabel(history_entry))
-        #    self.history_display.append(history_entry)
-
+            self.model_history.appendRow(QStandardItem(history_entry))
     # Reinitialise la calculatrice
     def resetAll(self):
         self.current_input = ''
@@ -141,6 +151,8 @@ class Calculatrice(QWidget):
                 self.current_input = result
                 # Ajoute l'expression et le résultat à l'historique
                 self.history.append((input, result))
+                if self.historique_view.isVisible():
+                    self.print_history()
             except Exception as e:
                 self.display.setText('Error')
                 self.current_input = ''
